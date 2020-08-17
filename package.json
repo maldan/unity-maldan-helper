@@ -1,0 +1,8 @@
+{
+  "name": "net.osoyan.maldan",
+  "version": "1.0.0",
+  "displayName": "Maldan Helper",
+  "description": "Various unity helpers",
+  "type": "library",
+  "unity": "2019.4"
+}
