@@ -12,8 +12,23 @@ namespace Util
         public float HitEffectTime = 0.3f;
         public Action OnDeath;
         public Action<float> OnDamage;
+		public Action<float, float> onChange;
+       
         public GameObject[] DamagableParts;        
-        public float Percentage => Health / MaxHealth;
+        public float Percentage
+        {
+            get
+            {
+                try
+                {
+                    return health / maxHealth;
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+        }
         public bool IsAutoDestroy;
 
         public void Start()
@@ -23,11 +38,18 @@ namespace Util
                 part.AddComponent<ShaderPropertyAnimation>();
             }   
         }
+		
+		public void Init(float maxValue)
+        {
+            health = maxHealth = maxValue;
+			onChange?.Invoke(health, maxHealth);
+        }
         
         public void Damage(float amount)
         {
             Health -= amount;
             OnDamage?.Invoke(amount);
+            onChange?.Invoke(health, maxHealth);
             
             if (Health <= 0)
             {
@@ -68,6 +90,7 @@ namespace Util
             {
                 Health = MaxHealth;
             }
+			onChange?.Invoke(health, maxHealth);
         }
 
         public void RestorePercentage(float amount)
