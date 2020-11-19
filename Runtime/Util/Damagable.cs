@@ -42,7 +42,7 @@ namespace Util
 		public void Init(float maxValue)
         {
             Health = MaxHealth = maxValue;
-			onChange?.Invoke(health, maxHealth);
+			onChange?.Invoke(Health, MaxHealth);
         }
         
         public void Damage(float amount)
@@ -90,7 +90,7 @@ namespace Util
             {
                 Health = MaxHealth;
             }
-			Health = MaxHealth = maxValue;
+			onChange?.Invoke(Health, MaxHealth);
         }
 
         public void RestorePercentage(float amount)
