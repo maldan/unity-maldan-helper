@@ -21,7 +21,7 @@ namespace Util
             {
                 try
                 {
-                    return health / maxHealth;
+                    return Health / MaxHealth;
                 }
                 catch
                 {
@@ -41,7 +41,7 @@ namespace Util
 		
 		public void Init(float maxValue)
         {
-            health = maxHealth = maxValue;
+            Health = MaxHealth = maxValue;
 			onChange?.Invoke(health, maxHealth);
         }
         
@@ -49,7 +49,7 @@ namespace Util
         {
             Health -= amount;
             OnDamage?.Invoke(amount);
-            onChange?.Invoke(health, maxHealth);
+            onChange?.Invoke(Health, MaxHealth);
             
             if (Health <= 0)
             {
@@ -90,7 +90,7 @@ namespace Util
             {
                 Health = MaxHealth;
             }
-			onChange?.Invoke(health, maxHealth);
+			Health = MaxHealth = maxValue;
         }
 
         public void RestorePercentage(float amount)
