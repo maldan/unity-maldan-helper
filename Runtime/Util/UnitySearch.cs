@@ -256,5 +256,14 @@ namespace Util
             
             return list;
         }
+
+        public static void FindAndDestroy(string query, Action<GameObject> destroy)
+        {
+            var items = Find(query);
+            foreach (var item in items)
+            {
+                destroy(item);
+            }
+        }
     }
 }

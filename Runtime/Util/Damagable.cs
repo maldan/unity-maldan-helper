@@ -7,52 +7,51 @@ namespace Util
 {
     public class Damagable : ShaderPropertyAnimation
     {
-        public float health;
-        public float maxHealth;
-        
-        public Action onDeath;
-        public Action<float> onDamage;
-
-        public GameObject[] damagableParts;
-        
-        public float Percentage => health / maxHealth;
-
-        public bool isAutoDestroy;
+        public float Health;
+        public float MaxHealth;
+        public float HitEffectTime = 0.3f;
+        public Action OnDeath;
+        public Action<float> OnDamage;
+        public GameObject[] DamagableParts;        
+        public float Percentage => Health / MaxHealth;
+        public bool IsAutoDestroy;
 
         public void Start()
         {
-            foreach (var part in damagableParts)
+            foreach (var part in DamagableParts)
             {
                 part.AddComponent<ShaderPropertyAnimation>();
             }   
-           
         }
         
         public void Damage(float amount)
         {
-            health -= amount;
-            onDamage?.Invoke(amount);
+            Health -= amount;
+            OnDamage?.Invoke(amount);
             
-            if (health <= 0)
+            if (Health <= 0)
             {
-                health = 0;
-                onDeath?.Invoke();
+                Health = 0;
+                OnDeath?.Invoke();
                 
-                if (isAutoDestroy)
+                if (IsAutoDestroy)
                 {
                     Destroy(gameObject);
                 }
+                
+                // Drop items
+                GetComponent<Droppable>()?.Drop();
             }
             
             // Check if gameObject has Render to make animation
             if (GetComponent<Renderer>())
             {
-                AnimateFloatProperty("Damage", 0, 1, 0.2f);
+                AnimateFloatProperty("Damage", 0, 1, HitEffectTime);
             }
             
-            foreach (var part in damagableParts)
+            foreach (var part in DamagableParts)
             {
-                part.GetComponent<ShaderPropertyAnimation>().AnimateFloatProperty("Damage", 0, 1, 0.2f);
+                part.GetComponent<ShaderPropertyAnimation>().AnimateFloatProperty("Damage", 0, 1, HitEffectTime);
             }
             
             //Debug.Log(GetComponent<Renderer>().sharedMaterial.GetColor("Damage"));
@@ -64,16 +63,16 @@ namespace Util
         
         public void Restore(float amount)
         {
-            health += amount;
-            if (health >= maxHealth)
+            Health += amount;
+            if (Health >= MaxHealth)
             {
-                health = maxHealth;
+                Health = MaxHealth;
             }
         }
 
         public void RestorePercentage(float amount)
         {
-            var partOfHealth = maxHealth * amount;
+            var partOfHealth = MaxHealth * amount;
             Restore(partOfHealth);
         }
     }

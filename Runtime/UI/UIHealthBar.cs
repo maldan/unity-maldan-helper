@@ -37,7 +37,7 @@ namespace UI
 
             Show();
             
-            _value.text = (int)Target.GetComponent<Damagable>().health + "/" + (int)Target.GetComponent<Damagable>().maxHealth;
+            _value.text = (int)Target.GetComponent<Damagable>().Health + "/" + (int)Target.GetComponent<Damagable>().MaxHealth;
             
             // Set health bar
             gameObject.GetChildByName("HealthBar").GetComponent<RectTransform>().sizeDelta = 
@@ -48,7 +48,7 @@ namespace UI
         {
             _isHidden = true;
 
-            //GetComponent<Image>().enabled = false;
+            GetComponent<Image>().enabled = false;
             gameObject.GetChildByName("HealthBar").GetComponent<Image>().enabled = false;
             gameObject.GetChildByName("Value").GetComponent<Text>().enabled = false;
         }
@@ -57,7 +57,7 @@ namespace UI
         {
             _isHidden = false;
             
-            //GetComponent<Image>().enabled = true;
+            GetComponent<Image>().enabled = true;
             gameObject.GetChildByName("HealthBar").GetComponent<Image>().enabled = true;
             gameObject.GetChildByName("Value").GetComponent<Text>().enabled = true;
         }

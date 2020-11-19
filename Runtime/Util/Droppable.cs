@@ -1,16 +1,25 @@
+using System;
+using Helper;
 using UnityEngine;
 
 namespace Util
 {
     public class Droppable : MonoBehaviour
     {
-        public GameObject[] items;
-
+        public GameObject[] Items;
+        public float Multiplier = 1;
+        public Vector3 DropRadius;
+        
         public void Drop()
         {
-            foreach (var item in items)
+            var m = Math.Round(Multiplier);
+
+            for (var i = 0; i < m; i++)
             {
-                Instantiate(item, transform.position, Quaternion.identity);
+                foreach (var item in Items)
+                {
+                    Instantiate(item, transform.position + DropRadius.Random(), Quaternion.identity);
+                }
             }
         }
     }

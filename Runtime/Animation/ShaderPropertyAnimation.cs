@@ -14,6 +14,9 @@ namespace Animation
         private string _propertyName;
         private bool _isBack;
         private int _type;
+
+        private float _timer1;
+        private float _timer2;
         
         public void AnimateColorProperty(string name, Color from, Color to, float time)
         {
@@ -37,6 +40,8 @@ namespace Animation
             _propertyName = name;
             _isBack = false;
             _type = 0;
+            _timer1 = 0;
+            _timer2 = 0;
         }
         
         private void Update()
@@ -50,6 +55,11 @@ namespace Animation
             if (_timer >= _duration / 2f)
             {
                 _isBack = true;
+                _timer2 += Time.deltaTime;
+            }
+            else
+            {
+                _timer1 += Time.deltaTime;
             }
 
             if (_timer > _duration)
@@ -59,7 +69,7 @@ namespace Animation
 
             if (_type == 0)
             {
-                var c = _isBack ? Mathf.Lerp(_floatTo, _floatFrom, _timer / _duration * 2) : Mathf.Lerp(_floatFrom, _floatTo, _timer / _duration * 2);
+                var c = _isBack ? Mathf.Lerp(_floatTo, _floatFrom, _timer2 / _duration * 2) : Mathf.Lerp(_floatFrom, _floatTo, _timer1 / _duration * 2);
                 GetComponent<Renderer>().material.SetFloat(_propertyName, c);
             }
             else
