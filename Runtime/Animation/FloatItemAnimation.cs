@@ -4,11 +4,11 @@ namespace Animation
 {
     public class FloatItemAnimation : MonoBehaviour
     {
-        public Vector3 offset;
-        public Vector3 direction;
-        public Vector3 rotationDirection;
-        public Vector3 startRotation;
-        public float speed = 4;
+        public Vector3 Offset;
+        public Vector3 Direction;
+        public Vector3 RotationDirection;
+        public Vector3 StartRotation;
+        public float Speed = 4;
 
         private float _random;
         private Vector3 _currentPosition;
@@ -22,8 +22,8 @@ namespace Animation
 
         void Update()
         {
-            transform.localPosition = _currentPosition + direction * Mathf.Sin(_random + Time.time * speed) * 0.2f + offset;
-            // transform.Rotate(rotationDirection);
+            transform.localPosition = _currentPosition + Direction * Mathf.Sin(_random + Time.time * Speed) * 0.2f + Offset;
+            transform.Rotate(RotationDirection);
         }
     }
 }

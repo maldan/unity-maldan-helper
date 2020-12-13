@@ -12,7 +12,8 @@ namespace Util
         public bool IsDestroyAtDestination;
         public bool IsLookAtTarget;
         public float RandomizeSpeed;
-
+        public bool IsInstant;
+        
         private void Start()
         {
             Speed += Random.Range(-RandomizeSpeed, RandomizeSpeed);
@@ -44,8 +45,15 @@ namespace Util
                 }
                 return;
             }
-            
-            transform.position = Vector3.MoveTowards(transform.position, Target.transform.position, Speed * Time.deltaTime);
+
+            if (IsInstant)
+            {
+                transform.position = Target.transform.position;
+            }
+            else
+            {
+                transform.position = Vector3.MoveTowards(transform.position, Target.transform.position, Speed * Time.deltaTime);
+            }
         }
     }
 }

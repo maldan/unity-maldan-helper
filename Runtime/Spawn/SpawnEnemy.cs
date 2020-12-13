@@ -91,7 +91,7 @@ namespace Spawn
                 // Count current amount of that enemy
                 for (var i = 0; i < _enemyList.Count; i++)
                 {
-                    if (_enemyList[i].GetComponent<ObjectInfo>().id == enemyId)
+                    if (_enemyList[i].GetComponent<ObjectInfo>().Id == enemyId)
                     {
                         amount += 1;
                     }

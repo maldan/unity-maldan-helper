@@ -41,7 +41,7 @@ namespace UI
             
             // Set health bar
             gameObject.GetChildByName("HealthBar").GetComponent<RectTransform>().sizeDelta = 
-                new Vector2(Target.GetComponent<Damagable>().Percentage * _startWidth, _startHeight);
+                new Vector2(Target.GetComponent<Damagable>().HealthPercentage * _startWidth, _startHeight);
         }
 
         private void Hide()

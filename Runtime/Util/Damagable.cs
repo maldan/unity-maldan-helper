@@ -9,13 +9,23 @@ namespace Util
     {
         public float Health;
         public float MaxHealth;
+
+        public float Armor;
+        public float MaxArmor;
+        public float ArmorDamageAbsorb = 0.3f;
+
+        public float SelfDamagePerSecond;
+        
         public float HitEffectTime = 0.3f;
         public Action OnDeath;
-        public Action<float> OnDamage;
-		public Action<float, float> onChange;
-       
-        public GameObject[] DamagableParts;        
-        public float Percentage
+        public Action<float, GameObject> OnDamage;
+		public Action<float, float, float, float> OnChange;
+        
+        public GameObject[] DamagableParts;
+
+        private bool _isDead;
+                       
+        public float HealthPercentage
         {
             get
             {
@@ -29,6 +39,21 @@ namespace Util
                 }
             }
         }
+        public float ArmorPercentage
+        {
+            get
+            {
+                try
+                {
+                    return Armor / MaxArmor;
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+        }
+        
         public bool IsAutoDestroy;
 
         public void Start()
@@ -39,30 +64,53 @@ namespace Util
             }   
         }
 		
-		public void Init(float maxValue)
+		public void Init(float maxValue, float maxArmorValue)
         {
             Health = MaxHealth = maxValue;
-			onChange?.Invoke(Health, MaxHealth);
+            Armor = MaxArmor = maxArmorValue;
+            OnChange?.Invoke(Health, MaxHealth, Armor, MaxArmor);
         }
         
-        public void Damage(float amount)
+        public void Kill()
         {
-            Health -= amount;
-            OnDamage?.Invoke(amount);
-            onChange?.Invoke(Health, MaxHealth);
+            Damage(MaxHealth * 2f);
+        }
+		
+        public void Damage(float amount, GameObject byWhom = null)
+        {
+            if (_isDead) return;
             
+            if (Armor > 0)
+            {
+                Armor -= amount;
+                var reminder = 0f;
+                if (Armor <= 0)
+                {
+                    reminder = Mathf.Abs(Armor);
+                    Armor = 0;
+                }
+                Health -= (amount - reminder) * ArmorDamageAbsorb;
+                Health -= reminder;
+            }
+            else
+            {
+                Health -= amount;
+            }
+            
+            OnDamage?.Invoke(amount, byWhom);
+            OnChange?.Invoke(Health, MaxHealth, Armor, MaxArmor);
+               
             if (Health <= 0)
             {
-                Health = 0;
+                Health = 0;        
+                if (IsAutoDestroy) Destroy(gameObject);
                 OnDeath?.Invoke();
                 
-                if (IsAutoDestroy)
-                {
-                    Destroy(gameObject);
-                }
-                
                 // Drop items
-                GetComponent<Droppable>()?.Drop();
+                var drops = GetComponents<Droppable>();
+                foreach (var drop in drops) drop.Drop();
+                
+                _isDead = true;
             }
             
             // Check if gameObject has Render to make animation
@@ -75,28 +123,35 @@ namespace Util
             {
                 part.GetComponent<ShaderPropertyAnimation>().AnimateFloatProperty("Damage", 0, 1, HitEffectTime);
             }
-            
-            //Debug.Log(GetComponent<Renderer>().sharedMaterial.GetColor("Damage"));
-            //
-
-            // GetComponent<Renderer>().material.SetColor("Damage", Color.red);
-            // Debug.Log(GetComponent<Renderer>().material.GetColor("Damage"));
         }
         
         public void Restore(float amount)
         {
             Health += amount;
-            if (Health >= MaxHealth)
-            {
-                Health = MaxHealth;
-            }
-			onChange?.Invoke(Health, MaxHealth);
+            if (Health >= MaxHealth) Health = MaxHealth;
+            OnChange?.Invoke(Health, MaxHealth, Armor, MaxArmor);
         }
 
-        public void RestorePercentage(float amount)
+        public void RestoreArmor(float amount)
+        {
+            Armor += amount;
+            if (Armor >= MaxArmor) Armor = MaxArmor;
+            OnChange?.Invoke(Health, MaxHealth, Armor, MaxArmor);
+        }
+        
+        /*public void RestorePercentage(float amount)
         {
             var partOfHealth = MaxHealth * amount;
             Restore(partOfHealth);
+        }*/
+
+        protected virtual void Update()
+        {
+            base.Update();
+            if (SelfDamagePerSecond > 0)
+            {
+                Damage(SelfDamagePerSecond * Time.deltaTime);
+            }
         }
     }
 }

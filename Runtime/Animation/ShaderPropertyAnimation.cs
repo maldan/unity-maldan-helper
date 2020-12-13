@@ -44,7 +44,7 @@ namespace Animation
             _timer2 = 0;
         }
         
-        private void Update()
+        protected virtual void Update()
         {
             if (!_isActive)
             {

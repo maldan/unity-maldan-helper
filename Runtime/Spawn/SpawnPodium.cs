@@ -36,8 +36,8 @@ namespace Spawn
         {
             _item = Instantiate(item, transform.position, Quaternion.identity);
             _item.AddComponent<FloatItemAnimation>();
-            _item.GetComponent<FloatItemAnimation>().offset = new Vector3(0, 1.2f, 0);
-            _item.GetComponent<FloatItemAnimation>().rotationDirection = new Vector3(0, 1.2f, 0);
+            _item.GetComponent<FloatItemAnimation>().Offset = new Vector3(0, 1.2f, 0);
+            _item.GetComponent<FloatItemAnimation>().RotationDirection = new Vector3(0, 1.2f, 0);
         }
     }
 }
