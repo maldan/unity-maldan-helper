@@ -4,5 +4,5 @@
   "displayName": "Maldan Helper",
   "description": "Various unity helpers",
   "type": "library",
-  "unity": "2020.1.16"
+  "unity": "2020.1"
 }
