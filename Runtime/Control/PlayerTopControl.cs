@@ -27,7 +27,8 @@ namespace Control
         private float _lastFallSpeed;
         private float _baseSmoothRate = 0.25f;
         private float _finalSmoothRate = 32f;
-
+        private Vector3 _oldD;
+        
         public float MaxSpeed = 1f;
         public float MaxDashSpeed = 1f;
         public float MaxJumpPower = 4f;
@@ -63,9 +64,30 @@ namespace Control
         public GameObject Body;
         public GameObject Legs;
         public GameObject Aim;
+        public GameObject Cursor;
 
         private void Start()
         {
+        }
+        
+        private void CalculateCameraOffset()
+        {
+            var camera = UnityEngine.Camera.main.GetComponent<TopCamera>();
+            if (camera == null)
+            {
+                return;
+            }
+            // Calculate distance
+            var from = transform.position;
+            from.y = 0;
+            var to = camera.RayHitPointAny;
+            to.y = 0;
+            var dist = Mathf.Min(Vector3.Distance(from, to), 5f);
+            
+            var dir = (transform.position - camera.RayHitPointWithoutCollision).normalized;
+            dir.y = 0;
+            _oldD += (dir * -dist - _oldD) / (0.2f / Time.deltaTime);
+            camera.TargetOffset = _oldD;
         }
 
         private void OnDrawGizmos()
@@ -257,6 +279,18 @@ namespace Control
                     LookingAtAny = LookingAt;
                 }
             }
+
+            if (Cursor && UnityEngine.Camera.main != null)
+            {
+                var topCamera = UnityEngine.Camera.main.GetComponent<TopCamera>();
+                
+                // Set cursor position
+                Cursor.SetActive(topCamera.IsRayHit);
+                Cursor.transform.position = topCamera.RayHitPoint;
+                Cursor.transform.rotation = Quaternion.LookRotation(topCamera.RayHitNormal); 
+            }
+
+            CalculateCameraOffset();
         }
 
         private void FixedUpdate()
@@ -294,6 +328,7 @@ namespace Control
                 }*/
 
                 //if (_lastFallSpeed < -GroundIfFallSpeedMoreThan)
+                
                 {
                     IsGround = true;
                     _groundCooldown = Math.Min(Math.Abs(_lastFallSpeed) / GroundIfFallSpeedMoreThan * 0.3f, 0.5f);

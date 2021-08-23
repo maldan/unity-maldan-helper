@@ -153,5 +153,13 @@ namespace Util
                 Damage(SelfDamagePerSecond * Time.deltaTime);
             }
         }
+
+        public static void Set(GameObject gameObject, int life, int armor = 0)
+        {
+            gameObject.AddComponent<Damagable>();
+            gameObject.GetComponent<Damagable>().DamagableParts = new GameObject[0];
+            gameObject.GetComponent<Damagable>().IsAutoDestroy = true;
+            gameObject.GetComponent<Damagable>().Init(life, armor);
+        }
     }
 }

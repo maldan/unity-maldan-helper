@@ -13,7 +13,7 @@ namespace Camera
         public float OffsetY;
         public float OffsetZ;
         public float Zoom = 1f;
-
+        
         public LayerMask LayerMask;
         
         private float _shakePowerX;
@@ -31,7 +31,8 @@ namespace Camera
         public Vector3 RayHitDirection;
         public Vector3 RayHitNormal;
         public bool IsRayHit { get; private set; }
-
+        public CameraRestrictionZone RestrictionZone; 
+        
         private void Start()
         {
             _finalPosition = transform.position;
@@ -94,6 +95,24 @@ namespace Camera
                     ((Target.transform.position + TargetOffset + new Vector3(0, OffsetY * Zoom, OffsetZ * Zoom) + new Vector3(_shakePowerX, _shakePowerY, _shakePowerZ).Random()) - transform.position) / _finalSmoothRate;
             //}
 
+            // GetComponent<Rigidbody>().MovePosition((Target.transform.position + TargetOffset + new Vector3(0, OffsetY * Zoom, OffsetZ * Zoom) + new Vector3(_shakePowerX, _shakePowerY, _shakePowerZ).Random()));
+
+            //var d = ((Target.transform.position + TargetOffset + new Vector3(0, OffsetY * Zoom, OffsetZ * Zoom)) - GetComponent<Rigidbody>().position);
+            // GetComponent<Rigidbody>().velocity += (d * 64f - GetComponent<Rigidbody>().velocity) / 8f;
+            
+            // GetComponent<Rigidbody>().velocity = d * 64f;
+            
+            if (RestrictionZone)
+            {
+                /*transform.position = new Vector3(
+                    Mathf.Clamp(transform.position.x, RestrictionZone.LeftBound, RestrictionZone.RightBound),
+                    Mathf.Clamp(transform.position.y, RestrictionZone.BottomBound, RestrictionZone.TopBound),
+                    Mathf.Clamp(transform.position.z, RestrictionZone.BackBound, RestrictionZone.FrontBound));*/
+                
+
+                RestrictionZone.ApplyToCamera(this);
+            }
+            
             // Check raycast from camera
             IsRayHit = false;
             RaycastHit hit;
@@ -108,7 +127,7 @@ namespace Camera
             RayHitDirection = (RayHitPointAny - transform.position).normalized;
 
             // transform.position = Vector3.MoveTowards(transform.position, Target.transform.position + new Vector3(0, OffsetY, OffsetZ), Speed * Time.deltaTime);
-            // transform.LookAt(Target.transform);
+            // transform.LookAt(Target.transform.position);
 
             //var lTargetDir = Target.transform.position - transform.position;
             // lTargetDir.y = 0.0f;
@@ -117,9 +136,28 @@ namespace Camera
             _finalSmoothRate = Smooth / Time.deltaTime;
         }
         
-        private void OnDrawGizmos()
+        private void OnTriggerStay(Collider other)
         {
-            // Gizmos.DrawWireCube(_point, Vector3.one);
+            if (other.GetComponent<CameraRestrictionZone>())
+            {
+                RestrictionZone = other.GetComponent<CameraRestrictionZone>();
+            }
+        }
+          
+        /*private void OnTriggerEnter(Collider other)
+        {
+            if (other.GetComponent<CameraRestrictionZone>())
+            {
+                RestrictionZone = other.GetComponent<CameraRestrictionZone>();
+            }
+        }*/
+        
+        private void OnTriggerExit(Collider other)
+        {
+            if (other.GetComponent<CameraRestrictionZone>())
+            {
+                RestrictionZone = null;
+            }
         }
     }
 }

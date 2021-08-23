@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
 using Util;
+using Object = UnityEngine.Object;
 
 namespace Debug
 {
@@ -13,7 +15,7 @@ namespace Debug
     {
         public ConsoleCommand(string name)
         {
-            UnityEngine.Debug.Log(name);
+            
         }
     }
     
@@ -29,7 +31,8 @@ namespace Debug
         private static readonly List<string> History = new List<string>();
         private static int _historyId;
         private static int _consoleOffsetY;
-        
+
+        public static Font Font;
         public static int MaxLines = 12;
         public static bool IsConsoleOpen { get; private set; }
 
@@ -42,7 +45,7 @@ namespace Debug
         
         public static void InitConsole()
         {
-            var canvas = new GameObject{ name = "ZDebugger_Canvas" };
+            var canvas = new GameObject{ name = "ZDebugger_Canvas", layer = 5 };
             // canvas.AddComponent<RectTransform>();
             canvas.AddComponent<Canvas>();
             canvas.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
@@ -52,10 +55,9 @@ namespace Debug
             canvas.GetComponent<CanvasScaler>().referenceResolution = new Vector2(2560, 1440);
             canvas.AddComponent<GraphicRaycaster>();
             
-            _consoleElement = new GameObject();
+            _consoleElement = new GameObject { name = "ZDebugger_Console", layer = 5 };
             _consoleElement.transform.SetParent(canvas.transform);
             
-            _consoleElement.name = "ZDebugger_Console";
             _consoleElement.AddComponent<RectTransform>();
             _consoleElement.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
             _consoleElement.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
@@ -63,8 +65,9 @@ namespace Debug
             _consoleElement.GetComponent<RectTransform>().sizeDelta = new Vector2(2560, 500);
             _consoleElement.AddComponent<Image>();
             _consoleElement.GetComponent<Image>().color = new Color(0, 0, 0, 0.9f);
+            _consoleElement.layer = 5;
 
-            var output = new GameObject {name = "Output"};
+            var output = new GameObject {name = "Output", layer = 5};
             output.transform.SetParent(_consoleElement.transform);
             
             output.AddComponent<RectTransform>();
@@ -72,15 +75,16 @@ namespace Debug
             output.GetComponent<RectTransform>().sizeDelta = new Vector2(2530, 422);
             output.AddComponent<Text>();
             output.GetComponent<Text>().color = Color.white;
-            output.GetComponent<Text>().fontSize = 30;
+            output.GetComponent<Text>().fontSize = 28;
             output.GetComponent<Text>().supportRichText = true;
+            output.GetComponent<Text>().lineSpacing = 1.22f;
             output.GetComponent<Text>().alignment = TextAnchor.LowerLeft;
             output.GetComponent<Text>().horizontalOverflow = HorizontalWrapMode.Overflow;
-            output.GetComponent<Text>().font = Font.CreateDynamicFontFromOSFont("Consolas", 30);
+            output.GetComponent<Text>().font = Font ? Font : Font.CreateDynamicFontFromOSFont("Lucida Console", 28);
             
             _output = output.GetComponent<Text>();
             
-            var input = new GameObject { name = "Input" };
+            var input = new GameObject { name = "Input", layer = 5 };
             input.transform.SetParent(_consoleElement.transform);
 
             input.AddComponent<RectTransform>();
@@ -89,7 +93,7 @@ namespace Debug
             input.AddComponent<InputField>();
             input.GetComponent<InputField>().transition = Selectable.Transition.None;
 
-            var inputText = new GameObject {name = "Text"};
+            var inputText = new GameObject {name = "Text", layer = 5};
             inputText.transform.SetParent(input.transform);
             inputText.AddComponent<RectTransform>();
             inputText.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 0);
@@ -100,13 +104,13 @@ namespace Debug
             inputText.GetComponent<Text>().fontSize = 30;
             inputText.GetComponent<Text>().supportRichText = false;
             inputText.GetComponent<Text>().alignment = TextAnchor.MiddleLeft;
-            inputText.GetComponent<Text>().font = Font.CreateDynamicFontFromOSFont("Consolas", 30);
+            inputText.GetComponent<Text>().font = Font.CreateDynamicFontFromOSFont("Lucida Console", 30);
             
             input.GetComponent<InputField>().textComponent = inputText.GetComponent<Text>();
             
             _input = input.GetComponent<InputField>();
 
-            _statElement = new GameObject {name = "ZDebugger_Stat"};
+            _statElement = new GameObject {name = "ZDebugger_Stat", layer = 5};
             _statElement.transform.SetParent(canvas.transform);
             _statElement.AddComponent<RectTransform>();
             _statElement.GetComponent<RectTransform>().anchorMin = new Vector2(1, 1);
@@ -116,7 +120,7 @@ namespace Debug
             _statElement.AddComponent<Image>();
             _statElement.GetComponent<Image>().color = new Color(0, 0, 0, 0.8f);
 
-            var statText = new GameObject {name = "Stat"};
+            var statText = new GameObject {name = "Stat", layer = 5};
             statText.transform.SetParent(_statElement.transform);
             statText.AddComponent<RectTransform>();
             statText.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
@@ -125,8 +129,9 @@ namespace Debug
             statText.AddComponent<Text>();
             statText.GetComponent<Text>().color = Color.white;
             statText.GetComponent<Text>().fontSize = 30;
+            statText.GetComponent<Text>().lineSpacing = 1.2f;
             statText.GetComponent<Text>().horizontalOverflow = HorizontalWrapMode.Overflow;
-            statText.GetComponent<Text>().font = Font.CreateDynamicFontFromOSFont("Consolas", 30);
+            statText.GetComponent<Text>().font = Font.CreateDynamicFontFromOSFont("Lucida Console", 30);
             
             _stat = statText.GetComponent<Text>();
             
@@ -173,31 +178,9 @@ namespace Debug
 
         private static void InitStdCommands()
         {
-            SetCommand("show", item =>
-            {
-                switch (item)
-                {
-                    case "stat":
-                        ShowStat();
-                        return "";
-                    default:
-                        throw new Exception("Unknown arg");
-                        break;
-                }
-            }, "Show: stat");
+            SetCommand("show.stat", ShowStat, "Show stats");
             
-            SetCommand("hide", item =>
-            {
-                switch (item)
-                {
-                    case "stat":
-                        HideStat();
-                        return "";
-                    default:
-                        throw new Exception("Unknown arg");
-                        break;
-                }
-            }, "Hide: stat");
+            SetCommand("hide.stat", HideStat, "Hide stats");
             
             SetCommand("clear", () =>
             {
@@ -230,18 +213,21 @@ namespace Debug
         
         public static void SetCommand(string command, Func<string> action, string description = "")
         {
+            CommandList_0.Remove(command);
             CommandList_0.Add(command, action);
             CommandDescription.Add($"{command}()", description);
         }
         
         public static void SetCommand(string command, Func<string, string> action, string description = "")
         {
+            CommandList_1.Remove(command);
             CommandList_1.Add(command, action);
             CommandDescription.Add($"{command}(a)", description);
         }
 
         public static void SetCommand(string command, Func<string, string, string> action, string description = "")
         {
+            CommandList_2.Remove(command);
             CommandList_2.Add(command, action);
             CommandDescription.Add($"{command}(a, b)", description);
         }
@@ -277,16 +263,35 @@ namespace Debug
         public static void ShowConsole()
         {
             _consoleElement.SetActive(true);
+            
+            var sceneActive = Object.FindObjectsOfType<MonoBehaviour>();
+            foreach (var mono in sceneActive)
+            {
+                var s = mono.GetType().GetCustomAttributes(typeof(ConsoleCommand)).ToArray();
+                for (var i = 0; i < s.Length; i++)
+                {
+                    UnityEngine.Debug.Log(s[i] as ConsoleCommand); 
+                }
+
+                /*var objectFields = mono.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+                for (var i = 0; i < objectFields.Length; i++) {
+                    var attribute = Attribute.GetCustomAttribute(objectFields[i], typeof(ConsoleCommand)) as ConsoleCommand;
+                    if (attribute != null)
+                        UnityEngine.Debug.Log(objectFields[i].Name); // The name of the flagged variable.
+                }*/
+            }
         }
         
-        public static void HideStat()
+        public static string HideStat()
         {
             _statElement.SetActive(false);
+            return null;
         }
 
-        public static void ShowStat()
+        public static string ShowStat()
         {
             _statElement.SetActive(true);
+            return null;
         }
         
         public static void ToggleConsole()
